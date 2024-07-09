@@ -7,9 +7,10 @@ const AlmacenarCompensaciones = async (event) => {
         const idSapString = id_sap.toString();
 
         const camposPermitidos = [
-            "id", "ANTIG_CARG", "ANTIG_COMP", "fecha_carga", "FEC_AUMENT", "GRUPO_PERSONAL",
-            "ID_SAP", "M_INTERN", "M_PC01", "M_PC25", "M_PC50", "M_PC75", "M_PC90",
-            "PERIODO", "PORC_AUMEN", "RENT_B_MEN", "RUT", "SB", "TIPO_CONTRATO"
+            "id","ANTIG_CARG","ANTIG_COMP","ASIG_ESPEC","ASIG_LOCAL","ASIG_MOVIL","ASIG_ZONA","B_VACAC",
+            "COLACION","DISCAPACIDAD","fecha_carga","FEC_AUMENT","GRADO","GRATIFICAC","MOTIVO",
+            "M_INTERN","M_PC01","M_PC25","M_PC50","M_PC75","M_PC90","PERCENTIL","PERIODO","PORC_AUMEN",
+            "RECONC","RENT_B_MEN","RTA_PROMED","RTA_TOTAL","R_FIJ_GAR","SB","SOCIEDAD","TIPO_CONTRATO"
         ];
 
         const filtrarCampos = (compensacion) => {
