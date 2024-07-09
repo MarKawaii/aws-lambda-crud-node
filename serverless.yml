@@ -1,0 +1,45 @@
+org: markawaii
+app: hola-mundo
+service: aws-lambda-crud-node
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource:
+        - arn:aws:dynamodb:us-east-1:601134614454:table/CompensacionesTableNew 
+
+functions:
+  hello:
+    handler: src/hello.hello
+    events:
+      - httpApi:
+          path: /
+          method: get
+  almacenar-compensaciones:
+    handler: src/almacenar-compensaciones.AlmacenarCompensaciones
+    events:
+      - httpApi:
+          path: /almacenar-compensaciones
+          method: post
+
+resources:
+  Resources:
+    CompensacionesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: CompensacionesTableNew
+        BillingMode: PAY_PER_REQUEST  ## cobra por la cantidad de peticiones realizadas
+        AttributeDefinitions:
+          - AttributeName: id_sap
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id_sap
+            KeyType: HASH
+
+plugins:
+  - serverless-offline
