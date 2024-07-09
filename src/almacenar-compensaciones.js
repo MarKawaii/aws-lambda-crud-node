@@ -2,7 +2,6 @@ const AWS = require('aws-sdk');
 
 const AlmacenarCompensaciones = async (event) => {
     const dynamodb = new AWS.DynamoDB.DocumentClient();
-
     try {
         const { id_sap, compensaciones } = JSON.parse(event.body);
         const idSapString = id_sap.toString();
@@ -23,8 +22,16 @@ const AlmacenarCompensaciones = async (event) => {
         };
 
         const compensacionesFiltradas = {};
+        const newCompIds = new Set(); // Set para manejar los IDs en la carga actual
         for (const [year, comps] of Object.entries(compensaciones)) {
-            compensacionesFiltradas[year] = comps.map(filtrarCampos);
+            compensacionesFiltradas[year] = comps.map(filtrarCampos).filter(comp => {
+                if (newCompIds.has(comp.id)) {
+                    console.log(`ID duplicado en la carga actual encontrado y omitido: ${comp.id}`);
+                    return false; // Omitir si ya está en el set
+                }
+                newCompIds.add(comp.id);
+                return true; // Agregar si no está duplicado
+            });
         }
 
         const result = await dynamodb.get({
