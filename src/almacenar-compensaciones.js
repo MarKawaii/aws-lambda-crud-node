@@ -4,12 +4,29 @@ const AlmacenarCompensaciones = async (event) => {
     const dynamodb = new AWS.DynamoDB.DocumentClient();
 
     try {
-        const { id_sap, agno, compensaciones } = JSON.parse(event.body);
-
-        // Asegúrate de que id_sap sea una cadena
+        const { id_sap, compensaciones } = JSON.parse(event.body);
         const idSapString = id_sap.toString();
 
-        // Verifica si el registro ya existe
+        const camposPermitidos = [
+            "id", "ANTIG_CARG", "ANTIG_COMP", "fecha_carga", "FEC_AUMENT", "GRUPO_PERSONAL",
+            "ID_SAP", "M_INTERN", "M_PC01", "M_PC25", "M_PC50", "M_PC75", "M_PC90",
+            "PERIODO", "PORC_AUMEN", "RENT_B_MEN", "RUT", "SB", "TIPO_CONTRATO"
+        ];
+
+        const filtrarCampos = (compensacion) => {
+            return Object.keys(compensacion)
+                .filter(key => camposPermitidos.includes(key))
+                .reduce((obj, key) => {
+                    obj[key] = compensacion[key];
+                    return obj;
+                }, {});
+        };
+
+        const compensacionesFiltradas = {};
+        for (const [year, comps] of Object.entries(compensaciones)) {
+            compensacionesFiltradas[year] = comps.map(filtrarCampos);
+        }
+
         const result = await dynamodb.get({
             TableName: "CompensacionesTableNew",
             Key: {
@@ -21,15 +38,29 @@ const AlmacenarCompensaciones = async (event) => {
         const createdAt = new Date().toISOString();
 
         if (result.Item) {
-            // Si el registro existe, verifica si el año ya está presente
             item = result.Item;
+            const existingIds = new Set();
+            for (const year of Object.keys(item)) {
+                if (year !== 'id_sap' && year !== 'createdAt' && year !== 'updatedAt') {
+                    item[year].forEach(comp => existingIds.add(comp.id));
+                }
+            }
 
-            if (!item.hasOwnProperty(agno)) {
-                // Si el año no existe, agregar las compensaciones para ese año
-                item[agno] = compensaciones;
-                item.updatedAt = createdAt;  // Agregar un campo de actualización opcional
+            let updates = false;
+            for (const [year, comps] of Object.entries(compensacionesFiltradas)) {
+                const filteredComps = comps.filter(comp => !existingIds.has(comp.id));
+                if (filteredComps.length > 0) {
+                    updates = true;
+                    if (!item.hasOwnProperty(year)) {
+                        item[year] = [];
+                    }
+                    item[year].push(...filteredComps);
+                    filteredComps.forEach(comp => existingIds.add(comp.id));
+                }
+            }
 
-                // Actualiza el item en DynamoDB
+            if (updates) {
+                item.updatedAt = createdAt;
                 await dynamodb.put({
                     TableName: "CompensacionesTableNew",
                     Item: item
@@ -37,24 +68,21 @@ const AlmacenarCompensaciones = async (event) => {
 
                 return {
                     statusCode: 200,
-                    body: JSON.stringify({ message: "Compensaciones agregadas para el nuevo año" }),
+                    body: JSON.stringify({ message: "Compensaciones actualizadas exitosamente" })
                 };
             } else {
-                // Si el año ya existe, devolver un mensaje apropiado
                 return {
                     statusCode: 400,
-                    body: JSON.stringify({ message: "El año ya existe para este id_sap" }),
+                    body: JSON.stringify({ message: "No se realizaron cambios; todos los IDs de las compensaciones ya existían" })
                 };
             }
         } else {
-            // Si el registro no existe, crea uno nuevo
             item = {
                 id_sap: idSapString,
                 createdAt: createdAt,
-                [agno]: compensaciones
+                ...compensacionesFiltradas
             };
 
-            // Inserta el nuevo item en DynamoDB
             await dynamodb.put({
                 TableName: "CompensacionesTableNew",
                 Item: item
@@ -62,13 +90,13 @@ const AlmacenarCompensaciones = async (event) => {
 
             return {
                 statusCode: 200,
-                body: JSON.stringify({ message: "Nuevo registro de compensaciones creado exitosamente" }),
+                body: JSON.stringify({ message: "Nuevo registro de compensaciones creado exitosamente" })
             };
         }
     } catch (error) {
         return {
             statusCode: 500,
-            body: JSON.stringify({ message: "Internal Server Error", error: error.message }),
+            body: JSON.stringify({ message: "Internal Server Error", error: error.message })
         };
     }
 };

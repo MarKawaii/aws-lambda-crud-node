@@ -1,9 +1,14 @@
 {
   "dependencies": {
     "aws-sdk": "^2.1656.0",
+    "graceful-fs": "^4.2.11",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "serverless-offline": "^13.6.0"
+    "serverless-esbuild": "^1.52.1",
+    "serverless-offline": "^13.6.0",
+    "serverless-plugin-common-excludes": "^4.0.0",
+    "serverless-plugin-include-dependencies": "^6.1.0",
+    "serverless-plugin-optimize": "^4.2.1-rc.1"
   }
 }
