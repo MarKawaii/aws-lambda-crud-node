@@ -17,9 +17,6 @@ Esta plantilla demuestra cómo hacer una API HTTP simple con Node.js ejecutándo
 Esta plantilla no incluye ningún tipo de persistencia (base de datos). Para ejemplos más avanzados, consulta el repositorio de ejemplos de Serverless que incluye ejemplos con Typescript, Mongo, DynamoDB y otros. [serverless/examples repository](https://github.com/serverless/examples/)
 
 
-
-
-
 ## Usage
 ### Deployment
 Para desplegar el ejemplo, necesitas ejecutar el siguiente comando: `serverless deploy`
@@ -38,8 +35,6 @@ functions:
 ```
 
 Nota: En su forma actual, después del despliegue, tu API es pública y puede ser invocada por cualquiera. Para despliegues en producción, podrías querer configurar un autorizador. Para obtener detalles sobre cómo hacerlo, consulta la documentación del evento HTTP API [HTTP API (API Gateway V2) event docs](https://www.serverless.com/framework/docs/providers/aws/events/http-api).
-
-
 
 
 ### Invocación
